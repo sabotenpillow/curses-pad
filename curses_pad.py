@@ -72,15 +72,21 @@ class CursesPad:
                 self._curx  = self._length_of_line(self._cury)
             if ch in (curses.ascii.BS, curses.KEY_BACKSPACE):
                 self.win.delch()
-                if self._lines[self._cury] == '':
-                    del(self._lines[self._cury])
+                if self._lines[self._lines_index()] == '':
+                    del(self._lines[self._lines_index()])
                     self._cury -= 1
                 else:
-                    self._lines[self._cury] = \
-                        self._lines[self._cury][:self._curx-1] \
-                        + self._lines[self._cury][self._curx:]
+                    self._lines[self._lines_index()] = \
+                        self._lines[self._lines_index()][:self._curx-1] \
+                        + self._lines[self._lines_index()][self._curx:]
         elif ch == curses.ascii.EOT:                           # ^d
-            self.win.delch()
+            if self._curx < self._length_of_line(self._cury):
+                self._lines[self._lines_index()] = \
+                    self._lines[self._lines_index()][:self._curx] \
+                    + self._lines[self._lines_index()][self._curx+1:]
+            elif self._lines_index() < len(self._lines) - 1:
+                self._lines[self._lines_index()] += self._lines[self._lines_index()+1]
+                del(self._lines[self._lines_index()+1])
         elif ch == curses.ascii.ENQ:                           # ^e
             self._curx = self._length_of_line(self._cury)
         elif ch in (curses.ascii.ACK, curses.KEY_RIGHT):       # ^f
@@ -136,6 +142,9 @@ class CursesPad:
         self._update_max_yx()
         length = len(CursesPad._invisible_filter(self._lines[self._topline + y]))
         return length if length - 1 < self._maxx else self._maxx
+
+    def _lines_index(self):
+        return self._topline + self._cury
 
     @staticmethod
     def _invisible_filter(string):
