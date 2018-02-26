@@ -53,7 +53,7 @@ class CursesPad:
         self._update_max_yx()
         self.lastcmd = ch
         if curses.ascii.isprint(ch):
-            n = self._topline + self._cury
+            n = self._lines_index()
             self._lines[n] = self._lines[n][:self._curx] \
                              + chr(ch) + self._lines[n][self._curx:]
             self._curx += 1
@@ -93,7 +93,7 @@ class CursesPad:
             if self._curx < self._length_of_line(self._cury):
                 self._curx += 1
             else:
-                if self._topline + self._cury >= len(self._lines) - 1:
+                if self._lines_index() >= len(self._lines) - 1:
                     self._lines.append('')
                 if self._cury == self._maxy:
                     self._topline += 1
@@ -117,7 +117,7 @@ class CursesPad:
         elif ch == curses.ascii.FF:                            # ^l
             self.win.refresh()
         elif ch in (curses.ascii.SO, curses.KEY_DOWN):         # ^n
-            if self._topline + self._cury >= len(self._lines) - 1:
+            if self._lines_index() >= len(self._lines) - 1:
                 self._lines.append('')
             if self._curx > self._length_of_line(self._cury+1):
                 self._curx = self._length_of_line(self._cury+1)
