@@ -24,7 +24,7 @@ class CursesPad:
         self.win.move(self._cury, self._curx)
 
     def _print_content(self):
-        self.win.clear()
+        self.win.erase()
         for y in range(self._maxy+1):
             n = self._topline + y
             if n >= len(self._lines): break
@@ -59,15 +59,17 @@ class CursesPad:
             self._curx += 1
         elif ch == curses.ascii.SOH:                           # ^a
             self._curx = 0
-        elif ch in (curses.ascii.STX,curses.KEY_LEFT,
+        elif ch in (curses.ascii.STX,curses.KEY_LEFT,          # ^b, ^h
                     curses.ascii.BS,curses.KEY_BACKSPACE):
             if self._curx > 0:
                 self._curx -= 1
             elif self._cury == 0:
-                pass
+                if self._topline > 0:
+                    self._topline -= 1
+                    self._curx = self._end_of_line(self._cury)
             else:
                 self._cury -= 1
-                self._curx = self._maxx
+                self._curx  = self._end_of_line(self._cury)
             if ch in (curses.ascii.BS, curses.KEY_BACKSPACE):
                 self.win.delch()
                 if self._lines[self._cury] == '':
@@ -82,15 +84,16 @@ class CursesPad:
         elif ch == curses.ascii.ENQ:                           # ^e
             self._curx = self._end_of_line(self._cury)
         elif ch in (curses.ascii.ACK, curses.KEY_RIGHT):       # ^f
-            if self._curx < self._maxx:
+            if self._curx < self._end_of_line(self._cury):
                 self._curx += 1
-            elif self._cury == self._maxy:
-                pass
             else:
-                length = len(self._lines)
-                if self._topline + self._cury >= length-1:
+                if self._topline + self._cury >= len(self._lines) - 1:
                     self._lines.append('')
-                self._cury += 1
+                if self._cury == self._maxy:
+                    self._topline += 1
+                else:
+                    self._cury += 1
+                self._curx  = 0
         elif ch == curses.ascii.BEL:                           # ^g
             return 0
         elif ch == curses.ascii.NL:                            # ^j
@@ -108,13 +111,12 @@ class CursesPad:
         elif ch == curses.ascii.FF:                            # ^l
             self.win.refresh()
         elif ch in (curses.ascii.SO, curses.KEY_DOWN):         # ^n
-            length = len(self._lines)
-            if self._topline + self._cury >= length-1:
+            if self._topline + self._cury >= len(self._lines) - 1:
                 self._lines.append('')
+            if self._curx > self._end_of_line(self._cury+1):
+                self._curx = self._end_of_line(self._cury+1)
             if self._cury < self._maxy:
                 self._cury += 1
-                if self._curx > self._end_of_line(self._cury+1):
-                    self._curx = self._end_of_line(self._cury+1)
             elif self._cury == self._maxy:
                 self._topline += 1
         elif ch == curses.ascii.SI:                            # ^o
@@ -122,15 +124,17 @@ class CursesPad:
         elif ch in (curses.ascii.DLE, curses.KEY_UP):          # ^p
             if self._cury > 0:
                 self._cury -= 1
-                if self._curx > self._end_of_line(self._cury-1):
-                    self._curx -= self._end_of_line(self._cury-1)
+                if self._curx > self._end_of_line(self._cury):
+                    self._curx = self._end_of_line(self._cury)
             elif self._cury == 0 and self._topline > 0:
                 self._topline -= 1
+                if self._curx > self._end_of_line(0):
+                    self._curx = self._end_of_line(0)
         return 1
 
     def _end_of_line(self, y):
         self._update_max_yx()
-        length = len(CursesPad._invisible_filter(self._lines[y]))
+        length = len(CursesPad._invisible_filter(self._lines[self._topline + y]))
         return length if length - 1 < self._maxx else self._maxx
 
     @staticmethod
