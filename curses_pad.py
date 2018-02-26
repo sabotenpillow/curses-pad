@@ -1,5 +1,6 @@
 import curses
 import curses.ascii
+import re
 
 class curses_pad:
     def __init__(self, win, content='', debug=False):
@@ -136,5 +137,5 @@ class curses_pad:
     def _end_of_line(self, y):
         self._update_max_yx()
         length = len(self._lines[y])
-        return length if length - 1 < self._maxy else self._maxy
+        return length if length - 1 < self._maxx else self._maxx
 
