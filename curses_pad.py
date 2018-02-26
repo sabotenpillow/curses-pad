@@ -102,11 +102,6 @@ class CursesPad:
                 self._curx  = 0
         elif ch == curses.ascii.BEL:                           # ^g
             return 0
-        elif ch == curses.ascii.NL:                            # ^j
-            if self._maxy == 0:
-                return 0
-            elif self._cury < self._maxy:
-                self._cury += 1
         elif ch == curses.ascii.VT:                            # ^k
             if self._curx == 0 \
                and self._length_of_line(self._cury) == 0:
@@ -126,7 +121,16 @@ class CursesPad:
             elif self._cury == self._maxy:
                 self._topline += 1
         elif ch == curses.ascii.SI:                            # ^o
-            self.win.insertln()
+            self._lines.insert(self._lines_index()+1, '')
+            self._cury += 1
+            self._curx  = 0
+        #elif ch == curses.ascii.CR:                            # ^m
+        elif ch == curses.ascii.NL:                            # ^j
+            index = self._lines_index()
+            self._lines.insert(index+1, self._lines[index][self._curx:])
+            self._lines[index] = self._lines[index][:self._curx]
+            self._cury += 1
+            self._curx  = 0
         elif ch in (curses.ascii.DLE, curses.KEY_UP):          # ^p
             if self._cury > 0:
                 self._cury -= 1
