@@ -136,6 +136,9 @@ class curses_pad:
 
     def _end_of_line(self, y):
         self._update_max_yx()
-        length = len(self._lines[y])
+        length = len(curses_pad._invisible_filter(self._lines[y]))
         return length if length - 1 < self._maxx else self._maxx
 
+    @staticmethod
+    def _invisible_filter(string):
+        return re.sub(r'[\r\n]', '', string)
