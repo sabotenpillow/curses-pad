@@ -115,6 +115,8 @@ class CursesPad:
                 self._cury += 1
                 if self._curx > self._end_of_line(self._cury+1):
                     self._curx = self._end_of_line(self._cury+1)
+            elif self._cury == self._maxy:
+                self._topline += 1
         elif ch == curses.ascii.SI:                            # ^o
             self.win.insertln()
         elif ch in (curses.ascii.DLE, curses.KEY_UP):          # ^p
@@ -122,6 +124,8 @@ class CursesPad:
                 self._cury -= 1
                 if self._curx > self._end_of_line(self._cury-1):
                     self._curx -= self._end_of_line(self._cury-1)
+            elif self._cury == 0 and self._topline > 0:
+                self._topline -= 1
         return 1
 
     def _end_of_line(self, y):
