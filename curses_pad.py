@@ -50,88 +50,87 @@ class CursesPad:
     def do_command(self, ch):
         "Process a single editing command."
         self._update_max_yx()
-        (y, x) = self.win.getyx()
         self.lastcmd = ch
         if curses.ascii.isprint(ch):
-            n = self._topline + y
-            self._lines[n] = self._lines[n][:x] + chr(ch) + self._lines[n][x:]
+            n = self._topline + self._cury
+            self._lines[n] = self._lines[n][:self._curx] + chr(ch) + self._lines[n][self._curx:]
             # self._move_curpos()
-            ## self.win.move(y, x+1)
+            ## self.win.move(self._cury, self._curx+1)
             self._curx += 1
         elif ch == curses.ascii.SOH:                           # ^a
-            ## self.win.move(y, 0)
+            ## self.win.move(self._cury, 0)
             self._curx = 0
         elif ch in (curses.ascii.STX,curses.KEY_LEFT, curses.ascii.BS,curses.KEY_BACKSPACE):
-            if x > 0:
-                ## self.win.move(y, x-1)
+            if self._curx > 0:
+                ## self.win.move(self._cury, self._curx-1)
                 self._curx -= 1
-            elif y == 0:
+            elif self._cury == 0:
                 pass
             else:
-                ## self.win.move(y-1, self._maxx)
+                ## self.win.move(self._cury-1, self._maxx)
                 self._cury -= 1
                 self._curx = self._maxx
             if ch in (curses.ascii.BS, curses.KEY_BACKSPACE):
                 self.win.delch()
-                if self._lines[y] == '':
-                    del(self._lines[y])
-                    ## self.win.move(y-1, x)
+                if self._lines[self._cury] == '':
+                    del(self._lines[self._cury])
+                    ## self.win.move(self._cury-1, self._curx)
                     self._cury -= 1
                 else:
-                    self._lines[y] = self._lines[y][:x-1] + self._lines[y][x:]
+                    self._lines[self._cury] = self._lines[self._cury][:self._curx-1] + self._lines[self._cury][self._curx:]
         elif ch == curses.ascii.EOT:                           # ^d
             self.win.delch()
         elif ch == curses.ascii.ENQ:                           # ^e
-            ## self.win.move(y, self._end_of_line(y))
-            self._curx = self._end_of_line(y)
+            ## self.win.move(self._cury, self._end_of_line(self._cury))
+            self._curx = self._end_of_line(self._cury)
         elif ch in (curses.ascii.ACK, curses.KEY_RIGHT):       # ^f
-            if x < self._maxx:
-                ## self.win.move(y, x+1)
+            if self._curx < self._maxx:
+                ## self.win.move(self._cury, self._curx+1)
                 self._curx += 1
-            elif y == self._maxy:
+            elif self._cury == self._maxy:
                 pass
             else:
                 length = len(self._lines)
-                if self._topline + y >= length-1:
+                if self._topline + self._cury >= length-1:
                     self._lines.append('')
-                ## self.win.move(y+1, 0)
+                ## self.win.move(self._cury+1, 0)
                 self._cury += 1
         elif ch == curses.ascii.BEL:                           # ^g
             return 0
         elif ch == curses.ascii.NL:                            # ^j
             if self._maxy == 0:
                 return 0
-            elif y < self._maxy:
-                ## self.win.move(y+1, 0)
+            elif self._cury < self._maxy:
+                ## self.win.move(self._cury+1, 0)
                 self._cury += 1
         elif ch == curses.ascii.VT:                            # ^k
-            if x == 0 and self._end_of_line(y) == 0:
+            if self._curx == 0 and self._end_of_line(self._cury) == 0:
                 self.win.deleteln()
             else:
                 # first undo the effect of self._end_of_line
-                ## self.win.move(y, x)
+                ## self.win.move(self._cury, self._curx)
                 self.win.clrtoeol()
         elif ch == curses.ascii.FF:                            # ^l
             self.win.refresh()
         elif ch in (curses.ascii.SO, curses.KEY_DOWN):         # ^n
             length = len(self._lines)
-            if self._topline + y >= length-1:
+            if self._topline + self._cury >= length-1:
                 self._lines.append('')
-            if y < self._maxy:
-                ## self.win.move(y+1, x)
+            if self._cury < self._maxy:
+                ## self.win.move(self._cury+1, self._curx)
                 self._cury += 1
-                if x > self._end_of_line(y+1):
-                    ## self.win.move(y+1, self._end_of_line(y+1))
-                    self._curx = self._end_of_line(y+1)
+                if self._curx > self._end_of_line(self._cury+1):
+                    ## self.win.move(self._cury+1, self._end_of_line(self._cury+1))
+                    self._curx = self._end_of_line(self._cury+1)
         elif ch == curses.ascii.SI:                            # ^o
             self.win.insertln()
         elif ch in (curses.ascii.DLE, curses.KEY_UP):          # ^p
-            if y > 0:
-                ## self.win.move(y-1, x)
+            if self._cury > 0:
+                ## self.win.move(self._cury-1, self._curx)
                 self._cury -= 1
-                if x > self._end_of_line(y-1):
-                    ## self.win.move(y-1, self._end_of_line(y-1))
-                    self._curx -= self._end_of_line(y-1)
+                if self._curx > self._end_of_line(self._cury-1):
+                    ## self.win.move(self._cury-1, self._end_of_line(self._cury-1))
+                    self._curx -= self._end_of_line(self._cury-1)
         return 1
 
     def _end_of_line(self, y):
