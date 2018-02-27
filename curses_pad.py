@@ -110,12 +110,11 @@ class CursesPad:
         elif ch == curses.ascii.BEL:                           # ^g
             return 0
         elif ch == curses.ascii.VT:                            # ^k
-            if self._curx == 0 \
-               and self._length_of_line(self._cury) == 0:
-                self.win.deleteln()
-            else:
-                # first undo the effect of self._length_of_line
-                self.win.clrtoeol()
+            if self._curx < self._length_of_line(self._cury):
+                self._lines[self._lines_index()] = self._lines[self._lines_index()][:self._curx]
+            elif self._lines_index() < len(self._lines) - 1:
+                self._lines[self._lines_index()] += self._lines[self._lines_index()+1]
+                del(self._lines[self._lines_index()+1])
         elif ch == curses.ascii.FF:                            # ^l
             self.win.refresh()
         elif ch in (curses.ascii.SO, curses.KEY_DOWN):         # ^n
@@ -146,6 +145,23 @@ class CursesPad:
                 self._topline -= 1
                 if self._curx > self._length_of_line(0):
                     self._curx = self._length_of_line(0)
+        elif ch == curses.ascii.NAK:                           # ^u
+            if self._curx > 0:
+                self._lines[self._lines_index()] = self._lines[self._lines_index()][self._curx:]
+                self._curx = 0
+            elif self._cury == 0:
+                if self._topline > 0:
+                    x = self._length_of_line(self._cury-1)
+                    self._lines[self._lines_index()-1] += self._lines[self._lines_index()]
+                    del(self._lines[self._lines_index()])
+                    self._topline -= 1
+                    self._curx     = x
+            else:
+                x = self._length_of_line(self._cury-1)
+                self._lines[self._lines_index()-1] += self._lines[self._lines_index()]
+                del(self._lines[self._lines_index()])
+                self._cury -= 1
+                self._curx  = x
         return 1
 
     def _length_of_line(self, y):
