@@ -59,8 +59,7 @@ class CursesPad:
             self._curx += 1
         elif ch == curses.ascii.SOH:                           # ^a
             self._curx = 0
-        elif ch in (curses.ascii.STX,curses.KEY_LEFT,          # ^b, ^h
-                    curses.ascii.BS,curses.KEY_BACKSPACE):
+        elif ch in (curses.ascii.STX,curses.KEY_LEFT):         # ^b
             if self._curx > 0:
                 self._curx -= 1
             elif self._cury == 0:
@@ -70,15 +69,25 @@ class CursesPad:
             else:
                 self._cury -= 1
                 self._curx  = self._length_of_line(self._cury)
-            if ch in (curses.ascii.BS, curses.KEY_BACKSPACE):
-                self.win.delch()
-                if self._lines[self._lines_index()] == '':
+        elif ch in (curses.ascii.BS, curses.KEY_BACKSPACE):  # ^h
+            if self._curx > 0:
+                self._lines[self._lines_index()] = \
+                    self._lines[self._lines_index()][:self._curx-1] \
+                    + self._lines[self._lines_index()][self._curx:]
+                self._curx -= 1
+            elif self._cury == 0:
+                if self._topline > 0:
+                    x = self._length_of_line(self._cury-1)
+                    self._lines[self._lines_index()-1] += self._lines[self._lines_index()]
                     del(self._lines[self._lines_index()])
-                    self._cury -= 1
-                else:
-                    self._lines[self._lines_index()] = \
-                        self._lines[self._lines_index()][:self._curx-1] \
-                        + self._lines[self._lines_index()][self._curx:]
+                    self._topline -= 1
+                    self._curx     = x
+            else:
+                x = self._length_of_line(self._cury-1)
+                self._lines[self._lines_index()-1] += self._lines[self._lines_index()]
+                del(self._lines[self._lines_index()])
+                self._cury -= 1
+                self._curx  = x
         elif ch == curses.ascii.EOT:                           # ^d
             if self._curx < self._length_of_line(self._cury):
                 self._lines[self._lines_index()] = \
