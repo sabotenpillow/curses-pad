@@ -134,7 +134,10 @@ class CursesPad:
             index = self._lines_index()
             self._lines.insert(index+1, self._lines[index][self._curx:])
             self._lines[index] = self._lines[index][:self._curx]
-            self._cury += 1
+            if self._cury == self._maxy:
+                self._topline += 1
+            else:
+                self._cury += 1
             self._curx  = 0
         elif ch in (curses.ascii.DLE, curses.KEY_UP):          # ^p
             if self._cury > 0:
