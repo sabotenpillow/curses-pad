@@ -10,6 +10,7 @@ class CursesPad:
         self._topline = 0
         self._lines = content.split('\n')
         self.__debug = debug
+        self._yankbuf = None
         self._update_max_yx()
         self._print_content()
         self._move_curpos()
@@ -111,6 +112,7 @@ class CursesPad:
             return 0
         elif ch == curses.ascii.VT:                            # ^k
             if self._curx < self._length_of_line(self._cury):
+                self._yankbuf = self._lines[self._lines_index()][self._curx:]
                 self._lines[self._lines_index()] = self._lines[self._lines_index()][:self._curx]
             elif self._lines_index() < len(self._lines) - 1:
                 self._lines[self._lines_index()] += self._lines[self._lines_index()+1]
@@ -150,6 +152,7 @@ class CursesPad:
                     self._curx = self._length_of_line(0)
         elif ch == curses.ascii.NAK:                           # ^u
             if self._curx > 0:
+                self._yankbuf = self._lines[self._lines_index()][:self._curx]
                 self._lines[self._lines_index()] = self._lines[self._lines_index()][self._curx:]
                 self._curx = 0
             elif self._cury == 0:
@@ -165,6 +168,11 @@ class CursesPad:
                 del(self._lines[self._lines_index()])
                 self._cury -= 1
                 self._curx  = x
+        elif ch == curses.ascii.EM and self._yankbuf != None: # ^y
+            n = self._lines_index()
+            self._lines[n] = self._lines[n][:self._curx] \
+                             + self._yankbuf + self._lines[n][self._curx:]
+            self._curx += len(self._yankbuf)
         return 1
 
     def _length_of_line(self, y):
