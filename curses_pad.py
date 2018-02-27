@@ -3,13 +3,12 @@ import curses.ascii
 import re
 
 class CursesPad:
-    def __init__(self, win, content='', debug=False):
+    def __init__(self, win, content=''):
         self.win = win
         self._cury, self._curx = 0, 0
         self._content = content
         self._topline = 0
         self._lines = content.split('\n')
-        self.__debug = debug
         self._yankbuf = None
         self._update_max_yx()
         self._print_content()
@@ -30,8 +29,6 @@ class CursesPad:
             n = self._topline + y
             if n >= len(self._lines): break
             self.win.addstr(y, 0, self._lines[n])
-        if self.__debug:
-            self.__print_endline()
         self.win.refresh()
         self._move_curpos()
 
