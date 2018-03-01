@@ -37,13 +37,15 @@ class CursesPad:
                         str(self._length_of_line(self._cury)))
 
     def edit(self, validate=None):
+        self._print_content()
         while 1:
             ch = self.win.getch()
             if not ch:
                 continue
             if not self.do_command(ch):
                 break
-            self._print_content()
+            else:
+                self._print_content()
         return '\n'.join(self._lines)
 
     def do_command(self, ch):
